@@ -24,6 +24,7 @@ setup(
         'trac.plugins': [
             'tracgate.api = tracgate.api',
             'tracgate.email_decorator = tracgate.email_decorator',
+            'tracgate.handlers = tracgate.handlers',
             'tracgate.xmlrpc = tracgate.xmlrpc',
         ]
     },
