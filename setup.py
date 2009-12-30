@@ -22,8 +22,9 @@ setup(
         },
     entry_points={
         'trac.plugins': [
-            'tracgate.xmlrpc = tracgate.xmlrpc',
+            'tracgate.api = tracgate.api',
             'tracgate.email_decorator = tracgate.email_decorator',
+            'tracgate.xmlrpc = tracgate.xmlrpc',
         ]
     },
 )
