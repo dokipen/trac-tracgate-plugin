@@ -2,30 +2,32 @@ import re
 from email.utils import parseaddr, formataddr
 
 from trac.core import *
+from trac.config import ListOption
 from announcer.distributors.mail import IAnnouncementEmailDecorator
-from announcer.util.mail import uid_encode, next_decorator
+from announcer.util.mail import uid_encode, next_decorator, set_header
 
 ADDR_REGEX = re.compile('(.*)@([^@]+)$')
 
-class ReplyToTicketEmailDecorator(Component):
+class ReplyToEmailDecorator(Component):
+    """
+    Add a Reply-To header to outgoing email so we can associate replies with 
+    the realm and id of the target object.
+    """
 
     implements(IAnnouncementEmailDecorator)
+
+    reply_to_realms = ListOption('tracgate', 'reply_to_realms', ['ticket'],
+            "The realms that should include a special Reply-To header.")
 
     def decorate_message(self, event, message, decorates=None):
         """
         Added headers to the outgoing email to track it's relationship
-        with a ticket.  Reply-To will encode a UID as a email parameter
-        so replies to the ticket announcement can be appended to the ticket.
-        References, In-Reply-To and Message-ID are just so email clients can
-        make sense of the threads.
-
-        This algorithm seems pretty generic, so maybe we can make the realm
-        configurable.  Any object with and id or name should work.  The 
-        Reply-To header only makes sense for things that can be appended to
-        through email.  Two examples are tickets and blog comments.
+        with a resource.  Reply-To will encode a UID as a email parameter
+        so replies to the resource announcement can be handled by an 
+        ITracGateEmailHandler.  
         """
-        if event.realm == 'ticket':
-            name, email_addr = parseaddr(message['Reply-To'])
+        if event.realm in self.reply_to_realms:
+            name, email_addr = parseaddr(str(message['Reply-To']))
             uid = uid_encode(self.env.abs_href(), event.realm, event.target)
 
             m = ADDR_REGEX.match(email_addr)
